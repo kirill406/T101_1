@@ -107,6 +107,60 @@ def generate_rand_facts(code_max, facts_count):
         facts.append(randint(0, code_max))
     return facts
 
+def resolve(facts, rules, max_fact_value):
+    result = []
+    time_start = time()
+
+    facts_set = set(facts)
+    if len(facts_set) == max_fact_value + 1:
+        print("Easy")
+        for rule in rules:  # O(N)
+            if 'and' in rule['if'].keys() or 'or' in rule['if'].keys():
+                result.append(rule['then'])
+    else:
+        print("Hard")
+        for rule in rules:
+            if 'and' in rule['if'].keys():
+                res = True
+                for fact in rule['if']['and']:
+                    if fact not in facts_set:
+                        res = False
+                        break
+
+
+            elif 'or' in rule['if'].keys():
+                res = False
+                for fact in rule['if']['or']:
+                    if fact in facts_set:
+                        res = True
+                        break
+
+            elif 'not' in rule['if'].keys():
+                res = True
+                for fact in rule['if']['not']:
+                    if fact in facts_set:
+                        res = False
+                        break
+
+            else:
+                raise TypeError
+
+            if res: result.append(rule['then'])
+
+    print("%d facts validated vs %d rules in %f seconds" % (len(facts), len(rules), time() - time_start))
+    # print("Result is ", result)
+    return result
+
+
+def generate_rules_and_facts(max_fact_value):
+    time_start = time()
+    N = 100000
+    M = 1000
+    log_oper_choice = ["and", "or", "not"]
+    rules = generate_simple_rules(max_fact_value, 4, N, log_oper_choice)
+    facts = generate_rand_facts(max_fact_value, M)
+    print("%d rules generated in %f seconds" % (N, time() - time_start))
+    return rules, facts
 
 # samples:
 #print('simple_rules:', generate_simple_rules(100, 4, 5))
@@ -114,61 +168,14 @@ def generate_rand_facts(code_max, facts_count):
 #print('stairway_rules:', generate_stairway_rules(100, 4, 5, ["or"]))
 #print('ring_rules:', generate_ring_rules(100, 4, 5, ["or"]))
 
+max_fact_value1 = 100
+
 # generate rules and facts and check time
-time_start = time()
-N = 100000
-M = 1000
-max_fact_value = 100
-log_oper_choice = ["and", "or", "not"]
-rules = generate_simple_rules(max_fact_value, 4, N, log_oper_choice)
-facts = generate_rand_facts(max_fact_value, M)
-result = []
-print("%d rules generated in %f seconds" % (N, time() - time_start))
+rules1, facts1 = generate_rules_and_facts(max_fact_value1)
 
 
 # load and validate rules
 # YOUR CODE HERE
-
+resolve(facts1, rules1, max_fact_value1)
 # check facts vs rules
-time_start = time()
 
-facts_set = set(facts)
-if len(facts_set) == max_fact_value+1:
-    print("Easy")
-    for rule in rules: # O(N)
-        if 'and' in rule['if'].keys() or 'or' in rule['if'].keys():
-            result.append(rule['then'])
-else:
-    print("Hard")
-    for rule in rules:
-        if 'and' in rule['if'].keys():
-            res = True
-            for fact in rule['if']['and']:
-                if fact not in facts_set:
-                    res = False
-                    break
-
-
-        elif 'or' in rule['if'].keys():
-            res = False
-            for fact in rule['if']['or']:
-                if fact in facts_set:
-                    res = True
-                    break
-
-        elif 'not' in rule['if'].keys():
-            res = True
-            for fact in rule['if']['not']:
-                if fact in facts_set:
-                    res = False
-                    break
-
-        else:
-            raise TypeError
-
-        if res: result.append(rule['then'])
-
-# YOUR CODE HERE
-
-print("%d facts validated vs %d rules in %f seconds" % (M, N, time() - time_start))
-#print("Result is ", result)
