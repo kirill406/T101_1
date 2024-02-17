@@ -125,14 +125,6 @@ facts = generate_rand_facts(max_fact_value, M)
 result = []
 print("%d rules generated in %f seconds" % (N, time() - time_start))
 
-count = 0
-for i in range(100000):
-    facts = generate_rand_facts(max_fact_value, M)
-    facts_set = set(facts)
-    if len(facts_set) != max_fact_value + 1:
-        count += 1
-print(count)
-
 
 # load and validate rules
 # YOUR CODE HERE
@@ -142,11 +134,40 @@ time_start = time()
 
 facts_set = set(facts)
 if len(facts_set) == max_fact_value+1:
+    print("Easy")
     for rule in rules: # O(N)
         if 'and' in rule['if'].keys() or 'or' in rule['if'].keys():
             result.append(rule['then'])
 else:
-    pass
+    print("Hard")
+    for rule in rules:
+        if 'and' in rule['if'].keys():
+            res = True
+            for fact in rule['if']['and']:
+                if fact not in facts_set:
+                    res = False
+                    break
+
+
+        elif 'or' in rule['if'].keys():
+            res = False
+            for fact in rule['if']['or']:
+                if fact in facts_set:
+                    res = True
+                    break
+
+        elif 'not' in rule['if'].keys():
+            res = True
+            for fact in rule['if']['not']:
+                if fact in facts_set:
+                    res = False
+                    break
+
+        else:
+            raise TypeError
+
+        if res: result.append(rule['then'])
+
 # YOUR CODE HERE
 
 print("%d facts validated vs %d rules in %f seconds" % (M, N, time() - time_start))
