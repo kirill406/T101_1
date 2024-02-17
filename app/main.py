@@ -101,36 +101,56 @@ def generate_seq_facts(M):
     return facts
 
 
-def generate_rand_facts(code_max, M):
+def generate_rand_facts(code_max, facts_count):
     facts = []
-    for i in range(0, M):
+    for i in range(0, facts_count):
         facts.append(randint(0, code_max))
     return facts
 
 
 # samples:
-print('simple_rules:', generate_simple_rules(100, 4, 10))
-print('random_rules:', generate_random_rules(100, 4, 10))
-print('stairway_rules:', generate_stairway_rules(100, 4, 10, ["or"]))
-print('ring_rules:', generate_ring_rules(100, 4, 10, ["or"]))
+#print('simple_rules:', generate_simple_rules(100, 4, 5))
+#print('random_rules:', generate_random_rules(100, 4, 5))
+#print('stairway_rules:', generate_stairway_rules(100, 4, 5, ["or"]))
+#print('ring_rules:', generate_ring_rules(100, 4, 5, ["or"]))
 
 # generate rules and facts and check time
 time_start = time()
 N = 100000
 M = 1000
-rules = generate_simple_rules(100, 4, N)
-facts = generate_rand_facts(100, M)
+max_fact_value = 100
+log_oper_choice = ["and", "or", "not"]
+rules = generate_simple_rules(max_fact_value, 4, N, log_oper_choice)
+facts = generate_rand_facts(max_fact_value, M)
+result = []
 print("%d rules generated in %f seconds" % (N, time() - time_start))
 
 # load and validate rules
 # YOUR CODE HERE
 
-print(rules[:2])
-print(facts)
-
 # check facts vs rules
 time_start = time()
 
+facts_set = set(facts)
+if len(facts_set) == max_fact_value+1:
+    for rule in rules: # O(N)
+        if 'and' in rule['if'].keys() or 'or' in rule['if'].keys():
+            result.append(rule['then'])
+elif 1==2:
+    list_and = []
+    list_or = []
+    list_not = []
+    sorted_facts = sorted(facts)
+    for rule in rules:
+        if 'and' in rule['if'].keys():
+            list_and.append(rule)
+        elif 'or' in rule['if'].keys():
+            list_or.append(rule)
+        elif 'not' in rule['if'].keys():
+            list_not.append(rule)
+else:
+    pass
 # YOUR CODE HERE
 
 print("%d facts validated vs %d rules in %f seconds" % (M, N, time() - time_start))
+#print("Result is ", result)
