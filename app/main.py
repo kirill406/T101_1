@@ -113,12 +113,24 @@ def resolve(facts, rules, max_fact_value):
 
     facts_set = set(facts)
     if len(facts_set) == max_fact_value + 1:
-        print("Easy")
+        #print("Easy")
+        global easy_count
+        global easy_time
+        easy_count += 1
         for rule in rules:  # O(N)
             if 'and' in rule['if'].keys() or 'or' in rule['if'].keys():
                 result.append(rule['then'])
+        spend_time = time() - time_start
+        #print("%d facts validated vs %d rules in %f seconds" % (len(facts), len(rules), spend_time))
+        # print("Result is ", result)
+        easy_time += spend_time
+        return result
+
     else:
         print("Hard")
+        global hard_count
+        global hard_time
+        hard_count += 1
         for rule in rules:
             if 'and' in rule['if'].keys():
                 res = True
@@ -146,10 +158,11 @@ def resolve(facts, rules, max_fact_value):
                 raise TypeError
 
             if res: result.append(rule['then'])
-
-    print("%d facts validated vs %d rules in %f seconds" % (len(facts), len(rules), time() - time_start))
-    # print("Result is ", result)
-    return result
+        spend_time = time() - time_start
+        #print("%d facts validated vs %d rules in %f seconds" % (len(facts), len(rules), spend_time))
+        # print("Result is ", result)
+        hard_time += spend_time
+        return result
 
 
 def generate_rules_and_facts(max_fact_value):
@@ -159,7 +172,7 @@ def generate_rules_and_facts(max_fact_value):
     log_oper_choice = ["and", "or", "not"]
     rules = generate_simple_rules(max_fact_value, 4, N, log_oper_choice)
     facts = generate_rand_facts(max_fact_value, M)
-    print("%d rules generated in %f seconds" % (N, time() - time_start))
+    #print("%d rules generated in %f seconds" % (N, time() - time_start))
     return rules, facts
 
 # samples:
@@ -169,13 +182,21 @@ def generate_rules_and_facts(max_fact_value):
 #print('ring_rules:', generate_ring_rules(100, 4, 5, ["or"]))
 
 max_fact_value1 = 100
+easy_time = 0
+easy_count = 0
+hard_time = 0
+hard_count = 0
 
-# generate rules and facts and check time
-rules1, facts1 = generate_rules_and_facts(max_fact_value1)
+for i in range(200):
+
+    # generate rules and facts and check time
+    rules1, facts1 = generate_rules_and_facts(max_fact_value1)
 
 
-# load and validate rules
-# YOUR CODE HERE
-resolve(facts1, rules1, max_fact_value1)
-# check facts vs rules
+    # load and validate rules
+    # YOUR CODE HERE
+    resolve(facts1, rules1, max_fact_value1)
+    # check facts vs rules
+
+print(easy_time/easy_count, hard_time/hard_count)
 
