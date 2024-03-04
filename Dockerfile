@@ -8,5 +8,5 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY ./app /code/app
 WORKDIR /code/app
-#CMD ["python3", "main.py", "&&", "pytest"]
+#CMD ["python3", "main.py"]
 CMD ["pytest"]

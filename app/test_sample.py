@@ -9,8 +9,10 @@ class TestResolves:
             {'if': {'and': [100, 2]}, 'then': 102},
         ]
         facts = [93, 45, 44, 12]
+        max_fact_value = 100
+        validated_rules1, rules_with_100 = main.validate_rules_simple(rules)
 
-        add_fact = main.resolve2(facts, rules)
+        add_fact = main.resolve(facts, rules, max_fact_value, rules_with_100)
         facts.extend(add_fact)
 
         assert set(facts) == {93, 101, 45, 44, 12, 107}
@@ -24,9 +26,9 @@ class TestResolves:
         ]
         facts = [93, 45, 44, 12]
 
-        facts.extend(main.resolve2(facts, rules))
+        facts.extend(main.resolve(facts, rules))
 
-        assert set(facts) == {93, 101, 45, 44, 12, 100, 102}
+        assert set(facts) == {12, 44, 45, 93, 100, 101, 102}
 
 
     def test_not(self):
@@ -36,9 +38,33 @@ class TestResolves:
         ]
         facts = [93, 60]
 
-        facts.extend(main.resolve2(facts, rules))
+        facts.extend(main.resolve(facts, rules))
 
         assert set(facts) == {93, 60, 21, 100}
+
+
+    def test_not2(self):
+        rules = [
+            {'if': {'not': [1]}, 'then': 2},
+            {'if': {'or': [2]}, 'then': 1},
+        ]
+        facts = [93, 60]
+
+        facts.extend(main.resolve(facts, rules))
+
+        assert set(facts) == {93, 60}
+
+
+    def test_revers_not2(self):
+        rules = [
+            {'if': {'or': [2]}, 'then': 1},
+            {'if': {'not': [1]}, 'then': 2},
+        ]
+        facts = [93, 60]
+
+        facts.extend(main.resolve(facts, rules))
+
+        assert set(facts) == {93, 60}
 
 
     def test_twice(self):
@@ -48,7 +74,7 @@ class TestResolves:
         ]
         facts = [93, 45, 44, 12]
 
-        facts.extend(main.resolve2(facts, rules))
+        facts.extend(main.resolve(facts, rules))
 
         assert set(facts) == {93, 45, 44, 12, 102}  # not {93, 45, 44, 12, 102, 102}
 
