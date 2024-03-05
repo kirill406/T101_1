@@ -203,7 +203,7 @@ def inferences(rules):
     return inferences_list
 
 
-def validate_dependence(rules, wrong_rules=None):  # O(rules^3)
+def validate_dependence(rules, wrong_rules=None):  # O(rules_item_count*rules^3)
     if wrong_rules is None:
         wrong_rules = set()
     inferences_list = inferences(rules)  # O(rules)
@@ -218,6 +218,27 @@ def validate_dependence(rules, wrong_rules=None):  # O(rules^3)
             for item in rule['if']['not']:  # O(rules_item_count)
                 if item in inferences_list:  # O(rules)
                     wrong_rules.add(rules.index(rule))  # O(rules)
+                    wrong_rules.add(inferences_list.index(item))  # O(rules)
+
+    return wrong_rules
+
+
+def fast_validate_dependence(rules, wrong_rules=None):  # O(rules_item_count*rules^2)
+    if wrong_rules is None:
+        wrong_rules = set()
+    inferences_list = inferences(rules)  # O(rules)
+    inferences_set = set(inferences_list)  # O(rules)
+    for rule_index in range(len(rules)):  # O(rules)
+        if 'and' in rules[rule_index]['if'].keys():
+            for item in rules[rule_index]['if']['and']:  # O(rules_item_count)
+                if item in inferences_set:  # O(1)
+                    wrong_rules.add(rule_index)  # O(1)
+                    wrong_rules.add(inferences_list.index(item))  # O(rules)
+
+        elif 'not' in rules[rule_index]['if'].keys():
+            for item in rules[rule_index]['if']['not']:  # O(rules_item_count)
+                if item in inferences_set:  # O(1)
+                    wrong_rules.add(rule_index)  # O(1)
                     wrong_rules.add(inferences_list.index(item))  # O(rules)
 
     return wrong_rules
@@ -257,7 +278,7 @@ def deletion_rules(rules, wrong_rules):  # O(NlogN) N=wrong_rules
 
 
 def validate_rules(rules):  # O(rules^3)
-    wrong_rules = validate_dependence(rules)  # O(rules^3)
+    wrong_rules = fast_validate_dependence(rules)  # O(rules^3)
     rules = deletion_rules(rules, wrong_rules)  # O(NlogN) N=wrong_rules
     return rules
 
