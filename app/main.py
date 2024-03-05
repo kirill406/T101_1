@@ -133,16 +133,8 @@ def check_rule(rule, facts_set):  # O(rules_item_max_count)
         raise KeyError
 
 
-def one_rules_loop(rules, facts_set):  # O(rules*rules_item_max_count)
-    added_facts = []
-    for rule in rules:  # O(rules)
-        if check_rule(rule, facts_set):  # O(rules_item_max_count)
-            added_facts.append(rule['then'])
-    return added_facts
-
-
-def resolve1(facts, rules):
-    for rule in rules:  # O(rules)
+def resolve1(facts, rules):  # O(rules)
+    for rule in rules:
         if 'and' in rule['if'].keys() or 'or' in rule['if'].keys():
             facts.append(rule['then'])
     return facts
@@ -151,81 +143,30 @@ def resolve1(facts, rules):
 def resolve2(facts_set, rules):  # O(rules*rules_item_max_count)
     if type(facts_set) is list:
         facts_set = set(facts_set)
-    for rule in rules:  # O(rules)
-        if check_rule(rule, facts_set): facts_set.add(rule['then'])  # O(rules_item_max_count)
+    for rule in rules:
+        if check_rule(rule, facts_set):  # O(rules_item_max_count)
+            facts_set.add(rule['then'])
     return facts_set
 
 
-def resolve(facts, rules, max_fact_value):  # O(rules*rules_item_max_count+facts)
+def resolve(facts, rules, max_fact_value=None):  # O(rules*rules_item_max_count+facts)
     facts_set = set(facts)  # O(facts)
 
-    if len(facts_set) == max_fact_value + 1:
+    if (max_fact_value is not None) and (len(facts_set) == max_fact_value + 1):
         return resolve1(facts, rules)  # O(rules)
     else:
         return resolve2(facts_set, rules)  # O(rules*rules_item_max_count)
 
 
-def generate_rules_and_facts(rules_count, rules_max_fact_value, rules_item_count, facts_count, facts_max_value):
-    generated_rules = generate_simple_rules(rules_max_fact_value, rules_item_count, rules_count)
-    generated_facts = generate_rand_facts(facts_max_value, facts_count)
-    return generated_rules, generated_facts
-
-
-def separate_rules(rules):
-    not_dict = {}
-    and_dict = {}
-    or_dict = {}
-    for rule in rules:  # O(rules)
-        if 'and' in rule['if'].keys():
-            if rule['then'] in and_dict:
-                and_dict[rule['then']].append(rule['if']['and'])
-            else:
-                and_dict[rule['then']] = [rule['if']['and']]
-        elif 'or' in rule['if'].keys():
-            if rule['then'] in or_dict:
-                or_dict[rule['then']].append(rule['if']['or'])
-            else:
-                or_dict[rule['then']] = [rule['if']['or']]
-        elif 'not' in rule['if'].keys():
-            if rule['then'] in not_dict:
-                not_dict[rule['then']].append(rule['if']['not'])
-            else:
-                not_dict[rule['then']] = [rule['if']['not']]
-        else:
-            raise KeyError
-    return not_dict, and_dict, or_dict
-
-
-def inferences(rules):
+def inferences(rules):  # O(rules)
     inferences_list = []
-    for rule in rules:  # O(rules)
+    for rule in rules:
         inferences_list.append(rule['then'])
     return inferences_list
 
 
-def validate_dependence(rules, wrong_rules=None):  # O(rules_item_count*rules^3)
-    if wrong_rules is None:
-        wrong_rules = set()
-    inferences_list = inferences(rules)  # O(rules)
-    for rule in rules:  # O(rules)
-        if 'and' in rule['if'].keys():
-            for item in rule['if']['and']:  # O(rules_item_count)
-                if item in inferences_list:  # O(rules)
-                    wrong_rules.add(rules.index(rule))  # O(rules)
-                    wrong_rules.add(inferences_list.index(item))  # O(rules)
-
-        elif 'not' in rule['if'].keys():
-            for item in rule['if']['not']:  # O(rules_item_count)
-                if item in inferences_list:  # O(rules)
-                    wrong_rules.add(rules.index(rule))  # O(rules)
-                    wrong_rules.add(inferences_list.index(item))  # O(rules)
-
-    return wrong_rules
-
-
-def fast_validate_dependence(rules, wrong_rules=None):  # O(rules_item_count*rules^2)
-    if wrong_rules is None:
-        wrong_rules = set()
+def validate_dependence(rules):  # O(rules_item_count*rules^2)
+    wrong_rules = set()
     inferences_list = inferences(rules)  # O(rules)
     inferences_set = set(inferences_list)  # O(rules)
     for rule_index in range(len(rules)):  # O(rules)
@@ -241,32 +182,12 @@ def fast_validate_dependence(rules, wrong_rules=None):  # O(rules_item_count*rul
                     wrong_rules.add(rule_index)  # O(1)
                     wrong_rules.add(inferences_list.index(item))  # O(rules)
 
-    return wrong_rules
+        elif 'or' in rules[rule_index]['if'].keys():
+            for item in rules[rule_index]['if']['or']:  # O(rules_item_count)
+                if item in inferences_set:  # O(1)
+                    wrong_rules.add(rule_index)  # O(1)
+                    wrong_rules.add(inferences_list.index(item))  # O(rules)
 
-
-def validate_rules_not(rules, wrong_rules=None):
-    if wrong_rules is None:
-        wrong_rules = set()
-    short = []
-    indexes = []
-    for rule in rules:
-        if 'not' in rule['if'].keys():
-            for i in rule['if']['not']:
-                short.append([i, rule['then']])
-                indexes.append([rules.index(rule)])
-    comb = short
-    comb_ind = indexes
-    for i in range(0, len(short)):
-        for comb_item in comb:
-            for short_item in short:
-                if comb_item[1] == short_item[0]:
-                    if [comb_item[0], short_item[1]] not in comb:
-                        ind = comb_ind[comb.index(comb_item)] + indexes[short.index(short_item)]
-                        if comb_item[0] == short_item[1]:
-                            wrong_rules.update(ind)
-                        else:
-                            comb.append([comb_item[0], short_item[1]])
-                            comb_ind.append(ind)
     return wrong_rules
 
 
@@ -277,8 +198,8 @@ def deletion_rules(rules, wrong_rules):  # O(NlogN) N=wrong_rules
     return rules
 
 
-def validate_rules(rules):  # O(rules^3)
-    wrong_rules = fast_validate_dependence(rules)  # O(rules^3)
+def validate_rules(rules):  # O(rules_item_count*rules^2)
+    wrong_rules = validate_dependence(rules)  # O(rules_item_count*rules^2)
     rules = deletion_rules(rules, wrong_rules)  # O(NlogN) N=wrong_rules
     return rules
 
@@ -297,9 +218,9 @@ facts1 = generate_rand_facts(100, M)
 time_start = time()
 
 # YOUR CODE HERE
-validated_rules1 = validate_rules(rules1)  # O(rules^3)
+validated_rules1 = validate_rules(rules1)  # O(rules_item_count*rules^2)
 
-print("%d rules validated in %f seconds" % (N, time()-time_start))
+print("%d rules validated in %f seconds" % (len(validated_rules1), time()-time_start))
 
 #check facts vs rules
 time_start = time()
@@ -307,4 +228,4 @@ time_start = time()
 # YOUR CODE HERE
 facts1 = resolve(facts1, validated_rules1, 100)  # O(facts + rules*rules_item_max_count)
 
-print("%d facts validated vs %d rules in %f seconds" % (M,N,time()-time_start))
+print("%d facts validated vs %d rules in %f seconds" % (M, len(validated_rules1), time()-time_start))
