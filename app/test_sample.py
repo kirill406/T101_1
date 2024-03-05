@@ -115,6 +115,18 @@ class TestValidators:
         assert rules_out == validated_rules
 
 
+    def test_or(self):
+        rules_in = [
+            {'if': {'or': [1, 6]}, 'then': 2},
+            {'if': {'or': [2, 5]}, 'then': 1},
+        ]
+        rules_out = []
+
+        validated_rules = main.validate_rules(rules_in)
+
+        assert rules_out == validated_rules
+
+
 
 class TestResolves:
 
